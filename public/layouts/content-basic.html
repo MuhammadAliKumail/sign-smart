@@ -31,8 +31,16 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, setDoc, getDoc, getDocs, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-        import firebaseConfig from '../resoucre/js/config.js';
-
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
