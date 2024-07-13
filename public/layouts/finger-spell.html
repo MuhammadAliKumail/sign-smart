@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="..\resoucre\js\sign-in-check.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSmart | Finger Spells</title>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</head>
+
+<body>
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+
+    <section class="min-h-screen bg-white">
+        <div>
+            <h1 class="text-center text-3xl pt-8 text-black">Finger Spell Game</h1>
+            <hr class="my-4">
+        </div>
+        <div class="flex justify-center flex-wrap flex-col gap-5">
+            <div id="question" class="text-center text-3xl pt-5 text-black">What does this sign say?</div>
+            <div id="score" class="text-center text-green-500 text-xl"></div>
+            <div class="flex justify-center">
+                <video id="videoPlayer" controls autoplay style="width: 500px;"></video>
+            </div>
+            <div id="options" class="flex justify-center gap-3 flex-wrap"></div>
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, updateDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+
+        sessionStorage.getItem("score");
+        async function updateScoreInFirestore(uid, score) {
+            // console.log(sessionStorage.getItem("score"));
+            const userDocRef = doc(db, "finger-spell", uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                await updateDoc(userDocRef, {
+                    score: sessionStorage.getItem("score")
+                });
+                console.log("score update in firestore");
+                location.reload();
+            } else {
+                await setDoc(userDocRef, { score: sessionStorage.getItem("score") });
+            }
+        }
+
+
+        async function initScoreFromFirestore(uid) {
+            const userDocRef = doc(db, "finger-spell", uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                return userData.score;
+            } else {
+                return 0;
+            }
+        }
+
+        window.onload = async () => {
+            const uid = sessionStorage.getItem("uid");
+            if (uid !== null) {
+                const score = await getScoreFromFirestore(uid);
+                // console.log("var: ", score)
+                document.getElementById("score").innerText = `Score: ${score}`;
+                sessionStorage.setItem("score", score);
+            }
+        };
+
+        async function getScoreFromFirestore(uid) {
+            const userDocRef = doc(db, "finger-spell", uid);
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                // console.log("firebase Score: ", docSnap.data().score);
+                const userData = docSnap.data();
+                return userData.score;
+            } else {
+                return 0;
+            }
+        }
+
+        function updateScore() {
+            if (sessionStorage.getItem("uid") !== null) {
+                document.getElementById("score").innerText = `Score: ${sessionStorage.getItem("score")}`;
+                updateScoreInFirestore(sessionStorage.getItem("uid"), score);
+            }
+        }
+
+        function checkAnswer(selectedId, correctId) {
+            if (selectedId === correctId) {
+                alert("Correct answer!");
+                var sc = sessionStorage.getItem("score");
+                sessionStorage.removeItem("score");
+                sc++;
+                sessionStorage.setItem("score", sc);
+                // console.log(sessionStorage.getItem("score"), "checkAnswer");
+                updateScore();
+            } else {
+                alert("Incorrect answer! Try again.");
+                location.reload();
+            }
+        }
+
+        async function fetchData() {
+            const querySnapshot = await getDocs(collection(db, "Signs"));
+            var allSigns = [];
+
+            querySnapshot.forEach((doc) => {
+                var data = doc.data();
+
+                // Loop through the keys of the document
+                Object.keys(data).forEach(key => {
+                    allSigns.push({ id: key, url: data[key] });
+                });
+            });
+
+            createMCQs(allSigns);
+        }
+
+
+
+        fetchData().catch((error) => {
+            console.log("Error getting documents: ", error);
+        });
+
+        function createMCQs(signs) {
+            var selectedSigns = [];
+            while (selectedSigns.length < 4) {
+                var randomIndex = Math.floor(Math.random() * signs.length);
+                var sign = signs[randomIndex];
+                if (!selectedSigns.some(s => s.id === sign.id)) {
+                    selectedSigns.push(sign);
+                }
+            }
+
+            selectedSigns = shuffleArray(selectedSigns);
+
+            var correctIndex = Math.floor(Math.random() * 4);
+            var correctSign = selectedSigns[correctIndex];
+
+            var question = "Which sign corresponds to this video?";
+            document.getElementById("question").innerText = question;
+
+            selectedSigns.forEach((sign, index) => {
+                var option = document.createElement("button");
+                option.textContent = sign.id;
+                option.classList.add("btn", "option", "bg-green-500", "text-white", "hover:bg-white", "hover:text-green-500", "hover:border-green-500");
+                option.setAttribute("data-id", sign.id);
+                option.onclick = function () {
+                    checkAnswer(sign.id, correctSign.id);
+                };
+                document.getElementById("options").appendChild(option);
+            });
+
+            var videoPlayer = document.getElementById("videoPlayer");
+            videoPlayer.src = correctSign.url;
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    </script>
+
+    <footer-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+</body>
+
+</html>

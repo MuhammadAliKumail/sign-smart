@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="..\resoucre\js\sign-in-check.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SignSmart | DashBoard</title>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+
+</head>
+
+<body>
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+
+    <section class="min-h-screen bg-white">
+
+        <div>
+            <h1 class="text-center text-3xl pt-8 text-black">DashBoard</h1>
+            <hr class="my-4">
+        </div>
+
+        <div class="flex flex-col">
+            <h1 class="text-center text-3xl pt-8 text-black gap-5"> Finger Spell Game</h1>
+            <hr class="my-4">
+            <div id="scoredisplay" class="flex justify-center mb-5 gap-5 flex-wrap text-4xl text-green-500"></div>
+            <div id="leveldisplay" class="flex justify-center gap-5 flex-wrap text-4xl text-green-500"></div>
+        </div>
+        <div>
+            <h1 class="text-center text-3xl pt-8 text-black"> Your Certificate</h1>
+            <hr class="my-4">
+            <div id="certificatedisplay" class="flex justify-center gap-5 flex-wrap"></div>
+        </div>
+        <div>
+            <h1 class="text-center text-3xl pt-8 text-black"> History of failed Test</h1>
+            <hr class="my-4">
+
+            <div id="failedAttemptDetails" class="flex justify-center flex-col gap-5"></div>
+
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const certificatedisplay = document.getElementById("certificatedisplay");
+        const scoredisplay = document.getElementById("scoredisplay");
+        const leveldisplay = document.getElementById("leveldisplay");
+
+
+
+        async function getScoreFromFirestore() {
+            let gameScore = 0
+            const userDocRef = doc(db, "finger-spell", sessionStorage.getItem('uid'));
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists()) {
+                // console.log("firebase Score: ", docSnap.data().score);
+                scoredisplay.innerHTML = `<div>${docSnap.data().score} </div>`;
+                gameScore = docSnap.data().score;
+            } else {
+                scoredisplay.innerHTML = "0";
+            }
+
+            if (gameScore >= 10) {
+                leveldisplay.innerHTML += `
+                <a href="#"
+                class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+                        <defs>
+                        </defs>
+                        <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                            <path d="M 45 63.847 c 17.631 0 31.923 -14.293 31.923 -31.923 S 62.631 0 45 0 C 34.483 21.782 33.645 43.104 45 63.847 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,204,91); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 45 63.847 c -17.631 0 -31.923 -14.293 -31.923 -31.923 S 27.369 0 45 0 v 63.814" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(253,188,75); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 38.778 54.411 c -0.092 0 -0.186 -0.013 -0.279 -0.039 C 26.122 50.786 18.967 37.8 22.552 25.422 c 0.153 -0.531 0.707 -0.836 1.239 -0.682 c 0.53 0.153 0.836 0.708 0.682 1.239 c -3.277 11.318 3.264 23.193 14.583 26.471 c 0.53 0.154 0.836 0.709 0.682 1.239 C 39.611 54.127 39.211 54.411 38.778 54.411 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 66.487 39.146 c -0.092 0 -0.186 -0.013 -0.278 -0.04 c -0.53 -0.154 -0.836 -0.708 -0.683 -1.239 c 1.589 -5.483 0.946 -11.256 -1.808 -16.256 c -2.755 -5 -7.291 -8.628 -12.774 -10.216 c -0.53 -0.153 -0.836 -0.708 -0.683 -1.239 c 0.154 -0.53 0.708 -0.835 1.239 -0.682 c 5.996 1.736 10.957 5.704 13.969 11.172 c 3.013 5.468 3.715 11.781 1.979 17.777 C 67.321 38.862 66.922 39.146 66.487 39.146 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 40.62 45.273 c -0.568 0 -1.132 -0.233 -1.547 -0.69 l -6.517 -7.176 c -0.351 -0.385 -0.544 -0.885 -0.544 -1.406 v -4.727 c 0 -0.871 0.525 -1.637 1.338 -1.951 c 0.813 -0.314 1.716 -0.099 2.302 0.545 l 4.902 5.397 c 0.034 0.036 0.09 0.039 0.127 0.008 l 13.854 -11.902 c 0.626 -0.54 1.481 -0.66 2.234 -0.314 c 0.752 0.345 1.219 1.073 1.219 1.9 v 5.096 c 0 0.61 -0.266 1.188 -0.728 1.586 L 41.984 44.763 C 41.586 45.105 41.102 45.273 40.62 45.273 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                        </g>
+                    </svg>
+                    </a>
+                `;
+            }
+            if (gameScore >= 50) {
+                leveldisplay.innerHTML += `
+                <a href="#"
+                class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+                            <defs>
+                            </defs>
+                            <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                                <path d="M 44.759 63.847 L 56.954 90 l 9.909 -9.079 l 13.325 -1.755 L 68.323 53.721 c -9.609 -0.082 -17.439 3.046 -23.082 10.126" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(237,99,98); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 45.241 63.847 L 33.046 90 l -9.909 -9.079 L 9.812 79.166 l 11.865 -25.445 C 33.52 52.826 41.539 56.026 45.241 63.847 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(233,84,84); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 45 63.847 c 17.631 0 31.923 -14.293 31.923 -31.923 S 62.631 0 45 0 C 34.483 21.782 33.645 43.104 45 63.847 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,204,91); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 45 63.847 c -17.631 0 -31.923 -14.293 -31.923 -31.923 S 27.369 0 45 0 v 63.814" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(253,188,75); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 38.778 54.411 c -0.092 0 -0.186 -0.013 -0.279 -0.039 C 26.122 50.786 18.967 37.8 22.552 25.422 c 0.153 -0.531 0.707 -0.836 1.239 -0.682 c 0.53 0.153 0.836 0.708 0.682 1.239 c -3.277 11.318 3.264 23.193 14.583 26.471 c 0.53 0.154 0.836 0.709 0.682 1.239 C 39.611 54.127 39.211 54.411 38.778 54.411 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 66.487 39.146 c -0.092 0 -0.186 -0.013 -0.278 -0.04 c -0.53 -0.154 -0.836 -0.708 -0.683 -1.239 c 1.589 -5.483 0.946 -11.256 -1.808 -16.256 c -2.755 -5 -7.291 -8.628 -12.774 -10.216 c -0.53 -0.153 -0.836 -0.708 -0.683 -1.239 c 0.154 -0.53 0.708 -0.835 1.239 -0.682 c 5.996 1.736 10.957 5.704 13.969 11.172 c 3.013 5.468 3.715 11.781 1.979 17.777 C 67.321 38.862 66.922 39.146 66.487 39.146 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                                <path d="M 40.62 45.273 c -0.568 0 -1.132 -0.233 -1.547 -0.69 l -6.517 -7.176 c -0.351 -0.385 -0.544 -0.885 -0.544 -1.406 v -4.727 c 0 -0.871 0.525 -1.637 1.338 -1.951 c 0.813 -0.314 1.716 -0.099 2.302 0.545 l 4.902 5.397 c 0.034 0.036 0.09 0.039 0.127 0.008 l 13.854 -11.902 c 0.626 -0.54 1.481 -0.66 2.234 -0.314 c 0.752 0.345 1.219 1.073 1.219 1.9 v 5.096 c 0 0.61 -0.266 1.188 -0.728 1.586 L 41.984 44.763 C 41.586 45.105 41.102 45.273 40.62 45.273 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(236,153,34); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            </g>
+                        </svg>
+                    </a>
+                `;
+            }
+            if (gameScore >= 100) {
+                leveldisplay.innerHTML += `
+                <a href="#"
+                class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="256" height="256" viewBox="0 0 256 256" xml:space="preserve">
+                        <defs>
+                        </defs>
+                        <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                            <path d="M 65.804 61.231 v 26.045 c 0 1.964 -2.018 3.281 -3.816 2.491 l -13.457 -5.916 c -2.25 -0.989 -4.812 -0.989 -7.062 0 l -13.457 5.916 c -1.798 0.791 -3.816 -0.526 -3.816 -2.491 V 61.231 H 65.804 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(233,84,84); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 49.393 1.733 L 49.393 1.733 c 1.692 1.58 4.102 2.131 6.311 1.441 l 0 0 c 3.231 -1.009 6.691 0.657 7.916 3.812 l 0 0 c 0.838 2.158 2.771 3.699 5.061 4.036 l 0 0 c 3.349 0.493 5.743 3.495 5.478 6.87 v 0 c -0.181 2.308 0.892 4.535 2.809 5.833 l 0 0 c 2.803 1.897 3.658 5.641 1.955 8.566 l 0 0 c -1.164 2.001 -1.164 4.473 0 6.474 l 0 0 c 1.702 2.925 0.848 6.669 -1.955 8.566 l 0 0 c -1.917 1.297 -2.99 3.525 -2.809 5.833 v 0 c 0.265 3.374 -2.13 6.377 -5.478 6.87 l 0 0 c -2.29 0.337 -4.223 1.878 -5.061 4.036 l 0 0 c -1.226 3.155 -4.686 4.821 -7.916 3.812 h 0 c -2.21 -0.69 -4.62 -0.14 -6.311 1.441 l 0 0 c -2.473 2.311 -6.313 2.311 -8.787 0 l 0 0 c -1.692 -1.58 -4.102 -2.131 -6.311 -1.441 h 0 c -3.231 1.009 -6.691 -0.657 -7.916 -3.812 l 0 0 c -0.838 -2.158 -2.771 -3.699 -5.061 -4.036 l 0 0 c -3.349 -0.493 -5.743 -3.495 -5.478 -6.87 l 0 0 c 0.181 -2.308 -0.892 -4.535 -2.809 -5.833 l 0 0 c -2.803 -1.897 -3.658 -5.641 -1.955 -8.566 l 0 0 c 1.164 -2.001 1.164 -4.473 0 -6.474 l 0 0 c -1.702 -2.925 -0.848 -6.669 1.955 -8.566 l 0 0 c 1.917 -1.297 2.99 -3.525 2.809 -5.833 l 0 0 c -0.265 -3.374 2.13 -6.377 5.478 -6.87 l 0 0 c 2.29 -0.337 4.223 -1.878 5.061 -4.036 l 0 0 c 1.226 -3.155 4.686 -4.821 7.916 -3.812 l 0 0 c 2.21 0.69 4.62 0.14 6.311 -1.441 l 0 0 C 43.08 -0.578 46.92 -0.578 49.393 1.733 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(253,188,75); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <circle cx="44.997" cy="35.527" r="24.517" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,219,112); fill-rule: nonzero; opacity: 1;" transform="  matrix(1 0 0 1 0 0) "/>
+                            <path d="M 58.893 24.769 L 58.893 24.769 c -1.512 -1.512 -3.964 -1.512 -5.476 0 L 42.402 35.783 c -0.912 0.912 -2.39 0.912 -3.301 0 l -2.516 -2.516 c -1.512 -1.512 -3.964 -1.512 -5.477 0 l 0 0 c -1.512 1.512 -1.512 3.964 0 5.476 l 7.993 7.993 c 0.912 0.912 2.39 0.912 3.301 0 l 3.826 -3.826 l 0 0 l 12.665 -12.665 C 60.405 28.733 60.405 26.281 58.893 24.769 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(255,255,255); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                        </g>
+                    </svg>
+                </a>
+                `;
+            }
+
+
+
+        }
+
+        async function fetchData() {
+            const userDocRef = doc(db, "asl-test", sessionStorage.getItem("uid"));
+            const docSnap = await getDoc(userDocRef);
+            return docSnap.data();
+        }
+
+        async function init() {
+            await getScoreFromFirestore();
+
+            const data = await fetchData();
+            if (data) {
+                if (data.basic) renderCertificate('basic', '/certificates');
+                if (data.interdemiate) renderCertificate('intermediate', '/certificates');
+                if (data.advance) renderCertificate('advance', '/certificates');
+            } else {
+                certificatedisplay.innerHTML = `
+                <a href="/test"
+                        class="inline-flex items-center text-white bg-green-600  hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:focus:ring-primary-900">
+                        You Don't any  certificates
+                    </a>
+                `;
+            }
+
+            await fetchFailedAttempt();
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+
+        function renderCertificate(type, certificatePath) {
+            const certificateLink = document.createElement('a');
+            certificateLink.href = certificatePath;
+            certificateLink.dataset.type = type;
+            certificateLink.classList.add("certificate-link");
+
+            const html = `
+                <div>
+                    <div class="card w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                        <figure>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="120px" width="80px" fill="currentColor" class="bi bi-patch-check" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M10.354 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                <path d="m10.273 2.513-.921-.944.715-.698.622.637.89-.011a2.89 2.89 0 0 1 2.924 2.924l-.01.89.636.622a2.89 2.89 0 0 1 0 4.134l-.637.622-.011.89a2.89 2.89 0 0 1-2.924 2.924l-.89-.01-.622.636a2.89 2.89 0 0 1-4.134 0l-.622-.637-.89.011a2.89 2.89 0 0 1-2.924-2.924l.01-.89-.636-.622a2.89 2.89 0 0 1 0-4.134l.637-.622-.011-.89a2.89 2.89 0 0 1 2.924-2.924l.89.01.622-.636a2.89 2.89 0 0 1 4.134 0l-.715.698a1.89 1.89 0 0 0-2.704 0l-.92.944-1.32-.016a1.89 1.89 0 0 0-1.911 1.912l.016 1.318-.944.921a1.89 1.89 0 0 0 0 2.704l.944.92-.016 1.32a1.89 1.89 0 0 0 1.912 1.911l1.318-.016.921.944a1.89 1.89 0 0 0 2.704 0l.92-.944 1.32.016a1.89 1.89 0 0 0 1.911-1.912l-.016-1.318.944-.921a1.89 1.89 0 0 0 0-2.704l-.944-.92.016-1.32a1.89 1.89 0 0 0-1.912-1.911z"/>
+                            </svg>
+                        </figure>
+                        <div class="card-body">
+                            <h2 class="card-title text-inherit flex justify-center">${type.charAt(0).toUpperCase() + type.slice(1)}</h2>
+                        </div>
+                    </div>
+                
+                </div>`;
+
+            certificateLink.innerHTML = html;
+            certificatedisplay.appendChild(certificateLink);
+        }
+
+        async function fetchFailedAttempt() {
+            const uid = sessionStorage.getItem("uid");
+            if (!uid) {
+                console.error("No UID found in session storage.");
+                return;
+            }
+
+            const docRef = doc(db, "failed", uid);
+            const docSnap = await getDoc(docRef);
+            const failedAttemptDetails = document.getElementById("failedAttemptDetails");
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+
+                if (data.basic) {
+                    displaySection(failedAttemptDetails, 'Basic', data.basic);
+                }
+
+                if (data.intermediate) {
+                    displaySection(failedAttemptDetails, 'Intermediate', data.intermediate);
+                }
+
+                if (data.advance) {
+                    displaySection(failedAttemptDetails, 'Advance', data.advance);
+                }
+            } else {
+                const noDataElement = document.createElement("div");
+                noDataElement.classList.add("text-center", "text-red-500");
+                noDataElement.textContent = "No failed attempt data found for this user.";
+                failedAttemptDetails.appendChild(noDataElement);
+            }
+        }
+
+        function displaySection(container, sectionTitle, sectionData) {
+            const { name, timestamp, wrongAnswers } = sectionData;
+
+            const sectionContainer = document.createElement("div");
+            sectionContainer.classList.add("p-4", "border", "rounded", "bg-gray-100", "mb-4");
+
+            const titleElement = document.createElement("h2");
+            titleElement.classList.add("font-bold", "text-2xl", "mb-2");
+            titleElement.textContent = `${sectionTitle} Level`;
+
+            const nameElement = document.createElement("div");
+            nameElement.classList.add("font-bold", "text-xl", "mb-2");
+            nameElement.textContent = `Name: ${name}`;
+
+            const timestampElement = document.createElement("div");
+            timestampElement.classList.add("text-gray-600", "mb-4");
+            timestampElement.textContent = `Timestamp: ${timestamp}`;
+
+            const wrongAnswersList = document.createElement("ul");
+            wrongAnswersList.classList.add("list-disc", "list-inside");
+
+            wrongAnswers.forEach((answer) => {
+                const answerItem = document.createElement("li");
+                answerItem.textContent = `Question ${answer.question}: Selected "${answer.selected}", Correct "${answer.correct}"`;
+                wrongAnswersList.appendChild(answerItem);
+            });
+
+            sectionContainer.appendChild(titleElement);
+            sectionContainer.appendChild(nameElement);
+            sectionContainer.appendChild(timestampElement);
+            sectionContainer.appendChild(wrongAnswersList);
+
+            container.appendChild(sectionContainer);
+        }
+
+
+    </script>
+
+    <footer-component css-path=" ../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+</body>
+
+</html>
