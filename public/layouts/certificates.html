@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSmart | ASL Certificate</title>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</head>
+
+<body>
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+    <section class="min-h-screen bg-white flex justify-center gap-5 pt-3 flex-wrap" id="display"></section>
+    <canvas id="canvas" height="1414px" width="2000px" style="display: none;"></canvas>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import firebaseConfig from '../resoucre/js/config.js';
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const display = document.getElementById("display");
+
+        async function fetchData() {
+            const userDocRef = doc(db, "asl-test", sessionStorage.getItem("uid"));
+            const docSnap = await getDoc(userDocRef);
+            return docSnap.data();
+        }
+
+        async function init() {
+            const data = await fetchData();
+            if (data.basic) renderCertificate('basic', '../resoucre/certificates/basic.jpg', data.basic);
+            if (data.interdemiate) renderCertificate('intermediate', '../resoucre/certificates/intermediate.jpg', data.interdemiate);
+            if (data.advance) renderCertificate('advance', '../resoucre/certificates/advance.jpg', data.advance);
+        }
+
+        document.addEventListener("DOMContentLoaded", init);
+
+        function renderCertificate(type, imagePath, timestamp) {
+            const certificateLink = document.createElement('a');
+            certificateLink.href = "#";
+            certificateLink.dataset.type = type;
+            certificateLink.dataset.image = imagePath;
+            certificateLink.dataset.timestamp = timestamp["timestamp"];
+            certificateLink.dataset.name = timestamp["name"];
+            // console.log(timestamp["name"]);
+            certificateLink.classList.add("certificate-link");
+
+            const html = `
+                <div>
+                    <div class="card w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                        <figure>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="120px" width="80px" fill="currentColor" class="bi bi-patch-check" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M10.354 6.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                <path d="m10.273 2.513-.921-.944.715-.698.622.637.89-.011a2.89 2.89 0 0 1 2.924 2.924l-.01.89.636.622a2.89 2.89 0 0 1 0 4.134l-.637.622-.011.89a2.89 2.89 0 0 1-2.924 2.924l-.89-.01-.622.636a2.89 2.89 0 0 1-4.134 0l-.622-.637-.89.011a2.89 2.89 0 0 1-2.924-2.924l.01-.89-.636-.622a2.89 2.89 0 0 1 0-4.134l.637-.622-.011-.89a2.89 2.89 0 0 1 2.924-2.924l.89.01.622-.636a2.89 2.89 0 0 1 4.134 0l-.715.698a1.89 1.89 0 0 0-2.704 0l-.92.944-1.32-.016a1.89 1.89 0 0 0-1.911 1.912l.016 1.318-.944.921a1.89 1.89 0 0 0 0 2.704l.944.92-.016 1.32a1.89 1.89 0 0 0 1.912 1.911l1.318-.016.921.944a1.89 1.89 0 0 0 2.704 0l.92-.944 1.32.016a1.89 1.89 0 0 0 1.911-1.912l-.016-1.318.944-.921a1.89 1.89 0 0 0 0-2.704l-.944-.92.016-1.32a1.89 1.89 0 0 0-1.912-1.911z"/>
+                            </svg>
+                        </figure>
+                        <div class="card-body">
+                            <h2 class="card-title text-inherit flex justify-center">${type.charAt(0).toUpperCase() + type.slice(1)}</h2>
+                        </div>
+                    </div>
+                </div>`;
+
+            certificateLink.innerHTML = html;
+            certificateLink.addEventListener("click", function (event) {
+                event.preventDefault();
+                const type = certificateLink.dataset.type;
+                const imagePath = certificateLink.dataset.image;
+                const timestamp = certificateLink.dataset.timestamp;
+                const name = certificateLink.dataset.name;
+                generateCertificate(type, imagePath, timestamp, name);
+            });
+
+            display.appendChild(certificateLink);
+        }
+
+        function generateCertificate(type, imagePath, timestamp, name) {
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+
+            var image = new Image();
+            image.crossOrigin = "anonymous";
+            image.src = imagePath;
+            image.onload = function () {
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                ctx.font = "33.8px Fira Sans";
+                ctx.fillStyle = "#18191B";
+                ctx.fillText(timestamp, 1200, 1173);
+
+                ctx.font = "130px Ink Free";
+                ctx.fillStyle = "green";
+                ctx.fillText(name, 350, 690);
+
+                // Trigger download
+                var link = document.createElement('a');
+                link.href = canvas.toDataURL("image/jpg");
+                link.download = `${type}-certificate.jpg`;
+                link.click();
+            };
+        }
+    </script>
+    <footer-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+</body>
+
+</html>

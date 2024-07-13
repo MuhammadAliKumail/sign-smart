@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="../resoucre/js/sign-in-check.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SignSmart | ASL Basic Test</title>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</head>
+
+<body>
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+
+    <section class="min-h-screen bg-white">
+        <form id="aslTestForm" class="mx-auto p-6 bg-white rounded-lg shadow-lg">
+            <div>
+                <h1 class="text-center text-3xl pt-8 text-black">ASL Test</h1>
+                <hr class="my-4">
+            </div>
+            <div class="flex justify-center flex-wrap flex-col gap-5">
+                <div id="optionsContainer" class="flex justify-center flex-col flex-wrap gap-3"></div>
+            </div>
+            <button type="submit"
+                class="w-full bg-green-500 hover:bg-white hover:text-green-500 border-solid border-green-500 text-white font-bold py-2 px-4 rounded mt-4">Submit</button>
+        </form>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import firebaseConfig from '../resoucre/js/config.js';
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchData() {
+            const docRef = doc(db, "Signs", "basic");
+            const docSnap = await getDoc(docRef);
+            const allSigns = [];
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                for (const [title, url] of Object.entries(data)) {
+                    allSigns.push({ id: title, url: url });
+                }
+            } else {
+                console.error("No such document!");
+            }
+            return allSigns;
+        }
+
+        function createMCQs(signs) {
+            const optionsContainer = document.getElementById("optionsContainer");
+
+            for (let i = 0; i < 10; i++) {
+                const signOptions = shuffleArray(signs).slice(0, 4);
+
+                if (signOptions.length > 0) {
+                    const correctSignId = signOptions[0].id;
+                    const correctSign = signOptions.find(sign => sign.id === correctSignId);
+
+                    shuffleArray(signOptions);
+
+                    optionsContainer.innerHTML += `<div class="text-center text-3xl pt-5 text-black">Question ${(i + 1)}: Which sign corresponds to this video?</div>`;
+                    const videoContainer = document.createElement("div");
+                    videoContainer.classList.add("video-container", "flex", "justify-center");
+                    const video = document.createElement("video");
+                    video.src = correctSign.url;
+                    video.controls = true;
+                    video.style.width = "500px";
+                    videoContainer.appendChild(video);
+                    optionsContainer.appendChild(videoContainer);
+
+                    signOptions.forEach((sign) => {
+                        const optionLabel = document.createElement("label");
+                        optionLabel.textContent = sign.id;
+                        optionLabel.classList.add("flex", "justify-center", "gap-2");
+                        const optionRadio = document.createElement("input");
+                        optionRadio.type = "radio";
+                        optionRadio.name = "question" + (i + 1);
+                        optionRadio.value = sign.id;
+                        optionRadio.dataset.correctAnswer = (sign.id === correctSignId);
+                        optionRadio.dataset.correctSign = correctSignId;
+                        optionLabel.appendChild(optionRadio);
+                        optionsContainer.appendChild(optionLabel);
+                    });
+                } else {
+                    console.error("Error: No sign options available.");
+                }
+            }
+        }
+
+        async function init() {
+            const userDocRef = doc(db, "asl-test", sessionStorage.getItem("uid"));
+            const docSnap = await getDoc(userDocRef);
+            if (docSnap.exists() && docSnap.data().basic) {
+                window.location.href = "/alreadydone";
+            } else {
+                const signs = await fetchData();
+                createMCQs(signs);
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        document.getElementById("aslTestForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            let score = 0;
+            let wrongAnswers = [];
+
+            for (let i = 0; i < 10; i++) {
+                const questionNumber = i + 1;
+                const selectedAnswer = document.querySelector(`input[name="question${questionNumber}"]:checked`);
+                const correctAnswer = document.querySelector(`input[name="question${questionNumber}"]`).dataset.correctSign;
+                if (selectedAnswer) {
+                    const isCorrect = JSON.parse(selectedAnswer.dataset.correctAnswer);
+                    if (isCorrect) {
+                        score++;
+                    } else {
+                        wrongAnswers.push({
+                            question: questionNumber,
+                            selected: selectedAnswer.value,
+                            correct: correctAnswer
+                        });
+                    }
+                } else {
+                    wrongAnswers.push({
+                        question: questionNumber,
+                        selected: null,
+                        correct: correctAnswer
+                    });
+                }
+            }
+
+            const userDocRef = doc(db, "asl-test", sessionStorage.getItem("uid"));
+            const userFailedRef = doc(db, "failed", sessionStorage.getItem("uid"));
+            const name = sessionStorage.getItem("firstName") + " " + sessionStorage.getItem("lastName");
+            const timestamp = new Date();
+
+            if (score >= 8) {
+                try {
+                    const docSnap = await getDoc(userDocRef);
+
+                    if (!docSnap.exists()) {
+                        await setDoc(userDocRef, {
+                            basic: {
+                                name: name,
+                                timestamp: timestamp.toDateString()
+                            }
+                        });
+                    } else {
+                        await updateDoc(userDocRef, {
+                            basic: {
+                                name: name,
+                                timestamp: timestamp.toDateString()
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+                alert("You have passed the test. Click OK to view certificate.");
+                window.location.href = "/certificates";
+            } else {
+                try {
+                    const failedDocSnap = await getDoc(userFailedRef);
+                    if (failedDocSnap.exists()) {
+                        const existingData = failedDocSnap.data().basic || {};
+                        const existingWrongAnswers = existingData.wrongAnswers || [];
+                        wrongAnswers = existingWrongAnswers.concat(wrongAnswers);
+                    }
+                    await setDoc(userFailedRef, {
+                        basic: {
+                            name: name,
+                            timestamp: timestamp.toDateString(),
+                            wrongAnswers: wrongAnswers
+                        }
+                    }, { merge: true });
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+                alert("You have failed the test. Click OK to retake.");
+                location.reload();
+            }
+        });
+
+        init();
+    </script>
+
+    <footer-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+</body>
+
+</html>
