@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="../resoucre/js/sign-in-check.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSmart | Dictionary</title>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</head>
+
+<body>
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+    <section class="min-h-screen bg-white flex flex-col gap-5">
+        <div>
+            <h1 class="text-center text-3xl pt-5 text-black">Dictionary</h1>
+            <hr class="my-4">
+        </div>
+        <div class="flex justify-center">
+            <input id="searchInput" type="text" placeholder="Search..."
+                class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+            <button id="searchButton"
+                class="ml-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:bg-green-600">Search</button>
+        </div>
+        <!-- Button Container -->
+        <div id="content" class="flex justify-center flex-col gap-3"></div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, collection, setDoc, getDoc, getDocs, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const addWatchedVideo = async (videoName) => {
+            try {
+                const sessionID = sessionStorage.getItem("uid");
+                if (!sessionID) {
+                    console.error("Session ID not found");
+                    return;
+                }
+                const watchedRef = doc(db, "watched", sessionID);
+                const timestamp = new Date().toISOString();
+                const docSnap = await getDoc(watchedRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    data[videoName] = timestamp;
+                    await setDoc(watchedRef, data);
+                } else {
+                    await setDoc(watchedRef, {
+                        [videoName]: timestamp
+                    });
+                }
+                location.reload();
+            } catch (error) {
+                console.error("Error adding watched video: ", error);
+            }
+        };
+
+        let watchedVideos = [];
+
+        const getWatchedVideo = async () => {
+            try {
+                const sessionID = sessionStorage.getItem("uid");
+                if (!sessionID) {
+                    console.error("Session ID not found");
+                    return;
+                }
+                const docRef = doc(db, "watched", sessionID);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    watchedVideos.push(data);
+                } else {
+                    console.log("No watched videos found");
+                }
+            } catch (error) {
+                console.error("Error getting watched video document: ", error);
+            }
+        };
+        await getWatchedVideo();
+
+        const isVideoWatched = (videoName) => {
+            if (watchedVideos.length > 0) {
+                return watchedVideos[0].hasOwnProperty(videoName);
+            }
+            return false;
+        };
+
+        const fetchData = async () => {
+            const documentNames = ["basic", "intermediate", "advance"];
+            for (const docName of documentNames) {
+                const docRef = doc(db, "Signs", docName);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const sortedEntries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b));
+                    for (const [videoTitle, videoUrl] of sortedEntries) {
+                        createButtonAndModal(videoTitle, videoUrl);
+                    }
+                } else {
+                    console.log(`No such document: ${docName}`);
+                }
+            }
+        };
+
+        const createButtonAndModal = (videoTitle, videoUrl) => {
+            const button = document.createElement("button");
+            button.classList.add("btn", "m-auto", "w-fit", "px-5", "bg-white", "text-green-500", "hover:bg-green-500", "hover:text-white", "border-none");
+            button.onclick = () => {
+                const modal = document.getElementById(`modal${videoTitle}`);
+                modal.showModal();
+            };
+            if (isVideoWatched(videoTitle)) {
+                button.innerHTML = `<svg class="text-red-500" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                    </svg>`;
+            }
+            const buttonText = document.createTextNode(videoTitle);
+            button.appendChild(buttonText);
+
+            const dialog = document.createElement("dialog");
+            dialog.id = `modal${videoTitle}`;
+            dialog.classList.add("modal", "modal-bottom", "sm:modal-middle");
+
+            const divModalBox = document.createElement("div");
+            divModalBox.classList.add("modal-box", "bg-white", "text-green-500");
+
+            const h1 = document.createElement("h1");
+            h1.classList.add("text-center", "mb-4", "text-4xl", "font-extrabold", "leading-none", "tracking-tight", "text-black", "md:text-5xl", "lg:text-6xl");
+            const span = document.createElement("span");
+
+            span.classList.add("underline", "underline-offset-3", "decoration-8", "decoration-green-500");
+            span.innerText = videoTitle;
+            h1.appendChild(span);
+
+            const video = document.createElement("video");
+            video.id = "videoPlayer";
+            video.setAttribute("controls", "controls");
+            video.setAttribute("preload", "none");
+            video.style.width = "100%";
+            video.src = videoUrl;
+            video.setAttribute("type", "video/mp4");
+
+            const divModalAction = document.createElement("div");
+            divModalAction.classList.add("modal-action");
+
+            const form = document.createElement("form");
+            form.setAttribute("method", "dialog");
+            const closeButton = document.createElement("button");
+            closeButton.classList.add("btn", "bg-green-500", "text-white", "hover:text-green-500", "hover:bg-white", "border-none", "hover:border-solid", "hover:border-green-500");
+            closeButton.innerText = "Close";
+            closeButton.onclick = () => {
+                addWatchedVideo(videoTitle);
+                dialog.close();
+            };
+            form.appendChild(closeButton);
+
+            divModalAction.appendChild(form);
+            divModalBox.appendChild(h1);
+            divModalBox.appendChild(video);
+            divModalBox.appendChild(divModalAction);
+            dialog.appendChild(divModalBox);
+            document.getElementById("content").appendChild(button);
+            document.body.appendChild(dialog);
+        };
+
+        document.getElementById("searchButton").addEventListener("click", async () => {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            if (query) {
+                await searchData(query);
+            } else {
+                await fetchData();
+            }
+        });
+
+        const searchData = async (searchQuery) => {
+            const contentDiv = document.getElementById("content");
+            contentDiv.innerHTML = ''; // Clear previous results
+            const documentNames = ["basic", "intermediate", "advance"];
+            for (const docName of documentNames) {
+                const docRef = doc(db, "Signs", docName);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const sortedEntries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b));
+                    for (const [videoTitle, videoUrl] of sortedEntries) {
+                        if (videoTitle.toLowerCase().includes(searchQuery)) {
+                            createButtonAndModal(videoTitle, videoUrl);
+                        }
+                    }
+                } else {
+                    console.log(`No such document: ${docName}`);
+                }
+            }
+        };
+
+        await fetchData();
+    </script>
+
+<footer-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+</body>
+
+</html>
