@@ -67,7 +67,7 @@
         function createMCQs(signs) {
             const optionsContainer = document.getElementById("optionsContainer");
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 25; i++) {
                 const signOptions = shuffleArray(signs).slice(0, 4);
 
                 if (signOptions.length > 0) {
@@ -129,7 +129,7 @@
             let score = 0;
             let wrongAnswers = [];
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 25; i++) {
                 const questionNumber = i + 1;
                 const selectedAnswer = document.querySelector(`input[name="question${questionNumber}"]:checked`);
                 const correctAnswer = document.querySelector(`input[name="question${questionNumber}"]`).dataset.correctSign;
