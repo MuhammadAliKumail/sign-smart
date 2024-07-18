@@ -29,6 +29,8 @@
                 <video id="videoPlayer" controls autoplay style="width: 500px;"></video>
             </div>
             <div id="options" class="flex justify-center gap-3 flex-wrap"></div>
+
+           
         </div>
     </section>
 
@@ -117,10 +119,22 @@
                 // console.log(sessionStorage.getItem("score"), "checkAnswer");
                 updateScore();
             } else {
-              
-                alert("Incorrect answer! The correct answer is:" + correctId);
+                document.getElementById('options').innerHTML = `<p class="text-xl text-red-500""> The correct answer is: ${correctId} <br> You will get new question after 3 seconds </p>  ` ;
+                function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function demo() {
+    for (let i = 0; i < 3; i++) {
+        await sleep(i * 1000);
+    }
+    location.reload();
+}
+
+demo();
+                // alert("Incorrect answer! The correct answer is: " + correctId);
                 
-                location.reload();
+                // 
             }
         }
 

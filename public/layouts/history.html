@@ -27,7 +27,7 @@
 
         </div>
         <!-- Button Container -->
-        <div id="content" class=" flex justify-center  flex-wrap gap-3"></div>
+        <div id="content" class=" flex justify-center flex-wrap gap-3"></div>
     </section>
 
 
@@ -36,15 +36,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
         import { getFirestore, collection, setDoc, getDoc, getDocs, doc, addDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         const firebaseConfig = {
-  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
-  authDomain: "sign-smart-35f1e.firebaseapp.com",
-  projectId: "sign-smart-35f1e",
-  storageBucket: "sign-smart-35f1e.appspot.com",
-  messagingSenderId: "531178023291",
-  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
-  measurementId: "G-X77XV9BPR3",
-  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
-};
+            apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+            authDomain: "sign-smart-35f1e.firebaseapp.com",
+            projectId: "sign-smart-35f1e",
+            storageBucket: "sign-smart-35f1e.appspot.com",
+            messagingSenderId: "531178023291",
+            appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+            measurementId: "G-X77XV9BPR3",
+            databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+            };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -90,18 +90,23 @@
             // If the property doesn't exist or the array is empty, return false
             return false;
         };
-        const fetchData = async () => {
-            const querySnapshot = await getDocs(collection(db, "Sign"));
-            querySnapshot.forEach((doc) => {
-                var data = doc.data();
 
-                if (isVideoWatched(doc.id)) {
+        const fetchData = async () => {
+            const documentNames = ["basic", "intermediate", "advance"];
+            for (const docName of documentNames) {
+                const docRef = doc(db, "Signs", docName);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const sortedEntries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b));
+                    for (const [videoTitle, videoUrl] of sortedEntries) {
+                        if (isVideoWatched(videoTitle)) {
                     // console.log(doc.id);
                     // Append modal to the document body
                     const button = document.createElement("button");
                     button.classList.add("btn", "m-auto", "w-fit", "px-5", "bg-white", "text-green-500", "hover:bg-green-500", "hover:text-white", "border-none");
                     button.onclick = () => {
-                        const modal = document.getElementById(`modal${doc.id}`);
+                        const modal = document.getElementById(`modal${videoTitle}`);
                         modal.showModal();
                     };
                     const svg = document.createElement("svg");
@@ -109,11 +114,11 @@
                             <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
                             <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
                         </svg>`;
-                    const buttonText = document.createTextNode(doc.id);
+                    const buttonText = document.createTextNode(videoTitle);
                     button.appendChild(buttonText);
 
                     const dialog = document.createElement("dialog");
-                    dialog.id = `modal${doc.id}`;
+                    dialog.id = `modal${videoTitle}`;
                     dialog.classList.add("modal", "modal-bottom", "sm:modal-middle");
 
                     const divModalBox = document.createElement("div");
@@ -123,7 +128,7 @@
                     h1.classList.add("text-center", "mb-4", "text-4xl", "font-extrabold", "leading-none", "tracking-tight", "text-black", "md:text-5xl", "lg:text-6xl");
                     const span = document.createElement("span");
                     span.classList.add("underline", "underline-offset-3", "decoration-8", "decoration-green-500");
-                    span.innerText = doc.id;
+                    span.innerText = videoTitle;
                     h1.appendChild(span);
 
                     const video = document.createElement("video");
@@ -131,7 +136,7 @@
                     video.setAttribute("controls", "controls");
                     video.setAttribute("preload", "none");
                     video.style.width = "100%";
-                    video.src = data[doc.id];
+                    video.src = videoUrl;
                     video.setAttribute("type", "video/mp4");
 
                     const divModalAction = document.createElement("div");
@@ -156,8 +161,13 @@
                     document.body.appendChild(dialog);
                 }
 
-            });
+                    }
+                } else {
+                    console.log(`No such document: ${docName}`);
+                }
+            }
         };
+        
         fetchData().catch((error) => {
             console.log("Error getting documents: ", error);
         });

@@ -21,7 +21,7 @@
 
     <section class="min-h-screen bg-white">
         <div>
-            <h1 class="text-center text-3xl pt-8 text-black">Sign of the day</h1>
+            <h1 class="text-center text-3xl pt-8 text-black">Sign of the moment</h1>
             <hr class="my-4 ">
         </div>
         <!-- Button Container -->
@@ -34,7 +34,7 @@
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         const firebaseConfig = {
   apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
   authDomain: "sign-smart-35f1e.firebaseapp.com",
@@ -49,28 +49,41 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+
         const fetchData = async () => {
-            const querySnapshot = await getDocs(collection(db, "Sign"));
-            // Randomly select one document
-            var randomIndex = Math.floor(Math.random() * querySnapshot.size);
-            var counter = 0;
-            querySnapshot.forEach((doc) => {
-                if (counter === randomIndex) {
-                    var data = doc.data();
-                    // Append button to the button container
-                    document.getElementById("content").innerHTML = `
+    const documentNames = ["basic", "intermediate", "advance"];
+    const allVideos = [];
+
+    for (const docName of documentNames) {
+        const docRef = doc(db, "Signs", docName);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const sortedEntries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b));
+            allVideos.push(...sortedEntries);
+        } else {
+            console.log(`No such document: ${docName}`);
+        }
+    }
+
+    if (allVideos.length > 0) {
+        const randomIndex = Math.floor(Math.random() * allVideos.length);
+        const [videoTitle, videoUrl] = allVideos[randomIndex];
+        
+                            document.getElementById("content").innerHTML = `
                         <div>
-                            <h1 class="text-center mb-4 text-4xl font-extrabold leading-none tracking-tight text-black md:text-5xl lg:text-6xl "><span class="underline underline-offset-3 decoration-8 decoration-green-500 ">${doc.id}</span></h1>
+                            <h1 class="text-center mb-4 text-4xl font-extrabold leading-none tracking-tight text-black md:text-5xl lg:text-6xl "><span class="underline underline-offset-3 decoration-8 decoration-green-500 ">${videoTitle}</span></h1>
                         </div>
                           <!-- Video Player -->
                           <div class="flex justify-center">
-                          <video id="videoPlayer" controls autoplay style="width: 500px; heigth:500px;" src="${data[doc.id]}" type="video/mp4"></video>
+                          <video id="videoPlayer" controls autoplay style="width: 500px; heigth:500px;" src="${videoUrl}" type="video/mp4"></video>
                           </div>             
                     `;
-                }
-                counter++;
-            });
-        };
+
+    }
+};
+
+        
         fetchData().catch((error) => {
             console.log("Error getting documents: ", error);
         });
