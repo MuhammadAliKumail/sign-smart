@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSmart | Sign-In</title>
+    <script src="../resoucre/js/already-sign-in-check.js"></script>
+    <link rel="icon" type="image/x-icon" href="../resoucre/images/icon.png">
+    <link href="../css/output.css" rel="stylesheet">
+    <script src="../components/navbar.js" defer></script>
+    <script src="../components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+
+
+</head>
+
+<body class="bg-white">
+    <navbar-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></navbar-component>
+
+
+    <section class="bg-gray-50">
+        <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+            <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900 ">
+                Sign-In
+            </a>
+            <div class="w-full bg-white rounded-lg shadow  md:mt-0 sm:max-w-md xl:p-0 ">
+                <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+                    <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl ">
+                        Sign in to your account
+                    </h1>
+                    <form id="loginForm" class="space-y-4 md:space-y-6" action="#">
+                        <div>
+                            <label for="email" class="block mb-2 text-sm font-medium text-gray-900 ">Your email</label>
+                            <input type="email" name="email" id="email"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full p-2.5 "
+                                placeholder="name@gmail.com" required="">
+                        </div>
+                        <div>
+                            <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Password</label>
+                            <input type="password" name="password" id="password" placeholder="••••••••"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-100 focus:border-blue-100 block w-full p-2.5 "
+                                required="">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                    <input id="remember" aria-describedby="remember" type="checkbox"
+                                        class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-100 "
+                                        required="">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="remember" class="text-gray-500 ">Remember me</label>
+                                </div>
+                            </div>
+                            <a href="#" id="foooget" class="text-sm font-medium text-green-500 hover:underline ">Forgot
+                                password?</a>
+                        </div>
+                        <button type="submit"
+                            class="w-full text-white bg-green-500 hover:text-green-500 border-solid border-2 border-green-500  hover:bg-white focus:ring-4 focus:outline-none focus:ring-blue-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center ">Sign
+                            in</button>
+                        <p class="text-sm font-light text-black ">
+                            Don’t have an account yet? <a href="/signup"
+                                class="font-medium text-green-500 hover:underline ">Sign up</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        // Initialize Firebase
+
+
+
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginForm = document.getElementById('loginForm');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // Sign in user with email and password
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+
+                // Reference to a specific document by its ID
+                const userId = user.uid; // Replace with the actual user ID
+                const userDocRef = doc(db, 'users', userId);
+
+                // Fetch the document
+                const userDocSnapshot = await getDoc(userDocRef);
+
+                // Check if the document exists
+                if (userDocSnapshot.exists()) {
+                    // Get the data from the document
+                    const userData = userDocSnapshot.data();
+                    // Store user information in sessionStorage
+                    sessionStorage.setItem('uid', user.uid);
+                    sessionStorage.setItem('email', user.email);
+                    sessionStorage.setItem('firstName', userData.firstName);
+                    sessionStorage.setItem('lastName', userData.lastName);
+
+
+                    console.log(userData);
+                    window.location.replace("/learn");
+                } else {
+                    console.log('Document does not exist!');
+                }
+
+
+
+                // Log user information to console
+                console.log('User logged in successfully:', user.uid, user.email,);
+
+            } catch (error) {
+                console.error('Error signing in:', error.message);
+                // Handle error, show alert, etc.
+            }
+        });
+
+        let forgotPassword = () => {
+            const email = document.getElementById('email').value;
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    alert("Check email ");
+                })
+                .catch((error) => {
+                    console.log(error.code, error.message)
+                })
+        }
+
+        document.getElementById("foooget").addEventListener('click', forgotPassword);
+
+    </script>
+
+
+
+
+    <footer-component css-path="../css/output.css" image-src="../resoucre/images/logo.png"></footer-component>
+
+</body>
+
+
+</html>

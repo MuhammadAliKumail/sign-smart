@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="./resoucre/js/sign-in-check.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SignSmart | ASL Test</title>
+    <link rel="icon" type="image/x-icon" href="./resource/images/icon.png">
+    <link href="./css/output.css" rel="stylesheet">
+    <script src="./components/navbar.js" defer></script>
+    <script src="./components/footer.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+    <style>
+        .card:hover svg path {
+            fill: white;
+            /* Change SVG fill color to white */
+        }
+
+        .card:hover {
+            border-color: white;
+            /* Change border color of the <a> tag to white */
+        }
+    </style>
+</head>
+
+<body>
+    <navbar-component css-path="./css/output.css" image-src="./resoucre/images/logo.png"></navbar-component>
+
+    <section class="min-h-screen bg-white">
+        <div>
+            <h1 class="text-center text-3xl pt-8 text-black">Select ASL Test Level...</h1>
+            <hr class="my-4">
+        </div>
+        <div id="test-levels" class="flex justify-center flex-wrap gap-3">
+            <!-- Links will be inserted here by JavaScript -->
+            <a href="/contentbasic"
+                class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                <figure>
+
+                    <svg xmlns="http://www.w3.org/2000/svg" height="120px" width="80px" fill="currentColor"
+                        class="bi bi-emoji-smile" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                        <path
+                            d="M4.285 9.567a.5.5 0 0 1 .683.183A3.5 3.5 0 0 0 8 11.5a3.5 3.5 0 0 0 3.032-1.75.5.5 0 1 1 .866.5A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1-3.898-2.25.5.5 0 0 1 .183-.683M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5m4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5" />
+                    </svg>
+                </figure>
+                <div class="card-body">
+                    <h2 class="card-title text-inherit flex justify-center">Basic</h2>
+                </div>
+            </a>
+        </div>
+        <div class="flex justify-center flex-wrap gap-3 my-10">
+            <p>Verify your name before taking any ASL TEST as the certificate will be based on the name prior taking the Test</p>
+        </div>
+    </section>
+
+    <footer-component css-path="./css/output.css" image-src="./resource/images/logo.png"></footer-component>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        const firebaseConfig = {
+  apiKey: "AIzaSyBmLHlHvokjkwjuQHhhG6CD8rnYZsjebEg",
+  authDomain: "sign-smart-35f1e.firebaseapp.com",
+  projectId: "sign-smart-35f1e",
+  storageBucket: "sign-smart-35f1e.appspot.com",
+  messagingSenderId: "531178023291",
+  appId: "1:531178023291:web:b67911b4d8c13f0270b5de",
+  measurementId: "G-X77XV9BPR3",
+  databaseURL: "https://sign-smart-35f1e-default-rtdb.firebaseio.com/",
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const uid = sessionStorage.getItem("uid");
+
+        async function checkASLTest(uid) {
+            const aslTestRef = doc(db, "asl-test", uid);
+            const aslTestSnap = await getDoc(aslTestRef);
+
+            if (aslTestSnap.exists()) {
+                const aslTestData = aslTestSnap.data();
+                // console.log(aslTestData);
+
+                // Check if the document has the basic field
+                if (aslTestData.basic) {
+                    // console.log("basic");
+                    document.getElementById('test-levels').innerHTML += `
+                        <a href="/contentintermediate"
+                            class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                            <figure>
+                                <svg xmlns="http://www.w3.org/2000/svg" height="120px" width="80px" fill="currentColor"
+                                    class="bi bi-emoji-frown" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                    <path
+                                        d="M4.285 12.433a.5.5 0 0 0 .683-.183A3.5 3.5 0 0 1 8 10.5c1.295 0 2.426.703 3.032 1.75a.5.5 0 0 0 .866-.5A4.5 4.5 0 0 0 8 9.5a4.5 4.5 0 0 0-3.898 2.25.5.5 0 0 0 .183.683M7 6.5C7 7.328 6.552 8 6 8s-1-.672-1-1.5S5.448 5 6 5s1 .672 1 1.5m4 0c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5S9.448 5 10 5s1 .672 1 1.5" />
+                                </svg>
+
+                            </figure>
+                            <div class="card-body">
+                                <h2 class="card-title text-inherit flex justify-center">Intermediate</h2>
+                            </div>
+                        </a>
+                    `;
+                }
+
+                // Check if the document has the intermediate field
+                if (aslTestData.interdemiate) {
+                    // console.log("intermediate");
+                    document.getElementById('test-levels').innerHTML += `<a href="/contentadvance"
+                            class="card  w-60 bg-white shadow-xl border-solid border-2 hover:text-white text-green-500 hover:bg-green-500">
+                            <figure>
+                                <svg xmlns="http://www.w3.org/2000/svg" height="120px" width="80px" fill="currentColor"
+                                    class="bi bi-emoji-dizzy" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                    <path
+                                        d="M9.146 5.146a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708.708l-.647.646.647.646a.5.5 0 0 1-.708.708l-.646-.647-.646.647a.5.5 0 1 1-.708-.708l.647-.646-.647-.646a.5.5 0 0 1 0-.708m-5 0a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 1 1 .708.708l-.647.646.647.646a.5.5 0 1 1-.708.708L5.5 7.207l-.646.647a.5.5 0 1 1-.708-.708l.647-.646-.647-.646a.5.5 0 0 1 0-.708M10 11a2 2 0 1 1-4 0 2 2 0 0 1 4 0" />
+                                </svg>
+
+                            </figure>
+                            <div class="card-body">
+                                <h2 class="card-title text-inherit flex justify-center">Advance</h2>
+                            </div>
+                        </a>
+                    `;
+                }
+
+            } else {
+                console.log("ASL Test document not found for the user.");
+            }
+        }
+
+        checkASLTest(uid);
+    </script>
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>
